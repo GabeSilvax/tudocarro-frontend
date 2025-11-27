@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_URL = "http://localhost:4000/api/cars";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [brands, setBrands] = useState([]);
@@ -377,7 +377,7 @@ function App() {
 
         <footer className="app-footer">
           <span>
-            Projeto de estudo • FIPE + React • {new Date().getFullYear()}
+            Projeto para analise de veículos • FIPE • {new Date().getFullYear()}
           </span>
         </footer>
       </div>
