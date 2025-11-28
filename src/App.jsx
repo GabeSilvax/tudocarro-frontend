@@ -97,7 +97,6 @@ function App() {
     setBrandSearch(value);
 
     if (!value) {
-      // limpou o campo
       setBrandCode("");
       setModels([]);
       setModelCode("");
@@ -356,12 +355,130 @@ function App() {
                   </div>
                 </div>
 
+                {/* ======== SPECS (API EXTERNA) ======== */}
                 <div className="details-extra">
                   <h4>Especificações técnicas (API externa)</h4>
+
                   {details.specs ? (
-                    <pre className="specs-json">
-                      {JSON.stringify(details.specs, null, 2)}
-                    </pre>
+                    <div className="specs-grid">
+
+                      <div className="details-item">
+                        <span className="details-item-label">Marca (API)</span>
+                        <span className="details-item-value">
+                          {details.specs.make?.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Modelo (API)</span>
+                        <span className="details-item-value">
+                          {details.specs.model}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Ano</span>
+                        <span className="details-item-value">
+                          {details.specs.year}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Combustível</span>
+                        <span className="details-item-value">
+                          {details.specs.fuel_type === "gas"
+                            ? "Gasolina"
+                            : details.specs.fuel_type === "diesel"
+                            ? "Diesel"
+                            : details.specs.fuel_type === "electricity"
+                            ? "Elétrico"
+                            : details.specs.fuel_type}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Motor</span>
+                        <span className="details-item-value">
+                          {details.specs.engine || "-"}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Cilindrada</span>
+                        <span className="details-item-value">
+                          {details.specs.displacement
+                            ? `${details.specs.displacement} L`
+                            : "-"}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Cilindros</span>
+                        <span className="details-item-value">
+                          {details.specs.cylinders || "-"}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Transmissão</span>
+                        <span className="details-item-value">
+                          {details.specs.transmission === "a"
+                            ? "Automática"
+                            : details.specs.transmission === "m"
+                            ? "Manual"
+                            : details.specs.transmission}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Tração</span>
+                        <span className="details-item-value">
+                          {details.specs.drive === "awd"
+                            ? "Integral (AWD)"
+                            : details.specs.drive === "fwd"
+                            ? "Dianteira (FWD)"
+                            : details.specs.drive === "rwd"
+                            ? "Traseira (RWD)"
+                            : details.specs.drive}
+                        </span>
+                      </div>
+
+                      <div className="details-item">
+                        <span className="details-item-label">Carroceria</span>
+                        <span className="details-item-value">
+                          {details.specs.body_style || "-"}
+                        </span>
+                      </div>
+
+                      {/* Consumo se não for bloqueado por plano premium */}
+                      {details.specs.city_mpg &&
+                        !String(details.specs.city_mpg)
+                          .toLowerCase()
+                          .includes("premium") && (
+                          <div className="details-item">
+                            <span className="details-item-label">
+                              Consumo cidade
+                            </span>
+                            <span className="details-item-value">
+                              {details.specs.city_mpg} mpg
+                            </span>
+                          </div>
+                        )}
+
+                      {details.specs.highway_mpg &&
+                        !String(details.specs.highway_mpg)
+                          .toLowerCase()
+                          .includes("premium") && (
+                          <div className="details-item">
+                            <span className="details-item-label">
+                              Consumo estrada
+                            </span>
+                            <span className="details-item-value">
+                              {details.specs.highway_mpg} mpg
+                            </span>
+                          </div>
+                        )}
+                    </div>
                   ) : (
                     <p className="details-note">
                       Nenhuma especificação extra encontrada para este modelo.
@@ -377,7 +494,8 @@ function App() {
 
         <footer className="app-footer">
           <span>
-            Gabriel Silva Projeto para analise de veículos • FIPE • {new Date().getFullYear()}
+            Gabriel Silva Projeto para analise de veículos • FIPE •{" "}
+            {new Date().getFullYear()}
           </span>
         </footer>
       </div>

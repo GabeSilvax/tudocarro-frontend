@@ -4,23 +4,20 @@
   color: #0f172a;
 }
 
-/* garante box-sizing consistente em tudo */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* garante altura total pro flex */
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* evita scroll horizontal se algo escapar por 1px */
+  overflow-x: hidden;
 }
 
-/* sobrescreve o estilo padrão do Vite pro root */
 #root {
   height: 100%;
   width: 100%;
@@ -30,13 +27,12 @@ body {
   background: transparent;
 }
 
-/* fundo + centralização vertical e horizontal */
 .app {
-  min-height: 100vh; /* cobre a tela toda */
+  min-height: 100vh;
   width: 100%;
   display: flex;
-  justify-content: center; /* centro horizontal */
-  align-items: center; /* centro vertical */
+  justify-content: center;
+  align-items: center;
   padding: 24px;
   background: radial-gradient(
     circle at top,
@@ -46,21 +42,18 @@ body {
   );
 }
 
-/* em telas muito estreitas, diminui um pouco o padding pra não vazar */
 @media (max-width: 480px) {
   .app {
     padding: 12px;
   }
 }
 
-/* container principal limitado */
 .layout {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
 }
 
-/* header */
 .app-header {
   display: flex;
   align-items: center;
@@ -95,7 +88,6 @@ body {
   font-size: 14px;
 }
 
-/* conteúdo */
 .app-main {
   display: flex;
   flex-direction: column;
@@ -108,7 +100,7 @@ body {
   padding: 18px 20px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.3);
-  max-width: 100%; /* nunca passa da largura disponível */
+  max-width: 100%;
 }
 
 .card-header {
@@ -131,7 +123,6 @@ body {
   font-size: 14px;
 }
 
-/* steps */
 .steps {
   display: flex;
   flex-wrap: wrap;
@@ -157,11 +148,10 @@ body {
   font-weight: 600;
 }
 
-/* grid de campos */
 .fields-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 24px; /* espaço lateral entre Marca / Modelo / Ano */
+  column-gap: 24px;
   row-gap: 14px;
 }
 
@@ -183,7 +173,6 @@ body {
   color: #0f172a;
 }
 
-/* inputs (texto/seleção) */
 .field-input {
   width: 100%;
   padding: 9px 11px;
@@ -193,15 +182,13 @@ body {
   font-size: 14px;
   outline: none;
   transition: all 0.15s ease;
-  color: #0f172a; /* garante que o texto fique visível */
+  color: #0f172a;
 }
 
-/* placeholder visível */
 .field-input::placeholder {
   color: #9ca3af;
 }
 
-/* datalist */
 datalist option {
   color: #0f172a;
   background: #ffffff;
@@ -224,7 +211,6 @@ datalist option {
   color: #94a3b8;
 }
 
-/* detalhes */
 .details-card {
   margin-bottom: 6px;
 }
@@ -350,74 +336,17 @@ datalist option {
   color: #6b7280;
 }
 
-.specs-json {
-  margin: 0;
-  font-size: 12px;
-  background: #020617;
-  color: #e5e7eb;
-  padding: 10px;
-  border-radius: 10px;
-  max-height: 260px;
-  overflow: auto;
-}
+/* ========== NOVA ÁREA: ESPECIFICAÇÕES TÉCNICAS (API EXTERNA) ========== */
 
-/* skeleton */
-.skeleton {
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    #e5e7eb 0%,
-    #f3f4f6 40%,
-    #e5e7eb 80%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.3s infinite;
-}
-
-.skeleton-title {
-  width: 60%;
-  height: 14px;
-  margin-bottom: 10px;
-}
-
-.skeleton-line {
-  width: 90%;
-  height: 10px;
-  margin-bottom: 8px;
-}
-
-.skeleton-line.short {
-  width: 40%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -120% 0;
-  }
-  100% {
-    background-position: 120% 0;
-  }
-}
-
-/* alert */
-.alert {
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-size: 13px;
-}
-
-.alert-error {
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #991b1b;
-}
-
-/* rodapé */
-.app-footer {
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 10px;
-  font-size: 12px;
-  color: #94a3b8;
-  text-align: right;
-  border-top: 1px dashed rgba(203, 213, 225, 0.8);
-  padding-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
 }
