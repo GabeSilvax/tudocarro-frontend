@@ -19,7 +19,8 @@ function App() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState("");
 
-  // Carrega marcas ao iniciar
+  // ======== BUSCA NO BACKEND ========
+
   useEffect(() => {
     fetch(`${API_URL}/brands`)
       .then((res) => res.json())
@@ -27,7 +28,6 @@ function App() {
       .catch(() => setError("Erro ao carregar marcas"));
   }, []);
 
-  // Quando a marca (código) muda -> carrega modelos
   useEffect(() => {
     if (!brandCode) {
       setModels([]);
@@ -52,7 +52,6 @@ function App() {
       .catch(() => setError("Erro ao carregar modelos"));
   }, [brandCode]);
 
-  // Quando modelo muda -> carrega anos
   useEffect(() => {
     if (!brandCode || !modelCode) {
       setYears([]);
@@ -71,7 +70,6 @@ function App() {
       .catch(() => setError("Erro ao carregar anos"));
   }, [brandCode, modelCode]);
 
-  // Quando ano muda -> carrega detalhes
   useEffect(() => {
     if (!brandCode || !modelCode || !yearCode) {
       setDetails(null);
@@ -90,7 +88,7 @@ function App() {
       .finally(() => setLoadingDetails(false));
   }, [brandCode, modelCode, yearCode]);
 
-  // ====== HANDLERS COM DATALIST (marca / modelo) ======
+  // ======== HANDLERS DOS CAMPOS ========
 
   const handleBrandInput = (e) => {
     const value = e.target.value;
@@ -154,6 +152,51 @@ function App() {
       ? "ano"
       : "detalhes";
 
+  // ======== HELPERS PARA SPECS ========
+
+  const specs = details?.specs || null;
+  const hasExtraSpecs =
+    typeof details?.hasExtraSpecs === "boolean"
+      ? details.hasExtraSpecs
+      : !!specs;
+  const specsMessage =
+    details?.message ||
+    "Nenhuma especificação extra encontrada para este modelo. Você ainda pode usar as informações da FIPE acima.";
+
+  const mapFuelType = (fuel) => {
+    if (!fuel) return "-";
+    const f = String(fuel).toLowerCase();
+
+    if (f === "gas" || f === "gasoline" || f === "petrol") return "Gasolina";
+    if (f === "diesel") return "Diesel";
+    if (f === "electricity" || f === "ev" || f === "electric") return "Elétrico";
+    if (f.includes("flex")) return "Flex";
+    if (f.includes("hybrid")) return "Híbrido";
+
+    return fuel;
+  };
+
+  const mapTransmission = (trans) => {
+    if (!trans) return "-";
+    const t = String(trans).toLowerCase();
+
+    if (t === "a" || t.includes("auto")) return "Automática";
+    if (t === "m" || t.includes("manual")) return "Manual";
+    return trans;
+  };
+
+  const mapDrive = (drive) => {
+    if (!drive) return "-";
+    const d = String(drive).toLowerCase();
+
+    if (d === "awd" || d.includes("all")) return "Integral (AWD)";
+    if (d === "4wd") return "4x4 (4WD)";
+    if (d === "fwd" || d.includes("front")) return "Dianteira (FWD)";
+    if (d === "rwd" || d.includes("rear")) return "Traseira (RWD)";
+
+    return drive;
+  };
+
   return (
     <div className="app">
       <div className="layout">
@@ -168,246 +211,289 @@ function App() {
         </header>
 
         <main className="app-main">
-          {error && <p className="alert alert-error">{error}</p>}
+          {/* COLUNA ESQUERDA: BUSCA + DETALHES FIPE */}
+          <div className="main-left">
+            {error && <p className="alert alert-error">{error}</p>}
 
-          {/* CARD DE BUSCA */}
-          <section className="card search-card">
-            <div className="card-header">
-              <div>
-                <h2>Buscar veículo</h2>
-                <p>Digite a marca e o modelo, depois selecione o ano.</p>
-              </div>
-              <div className="steps">
-                <span
-                  className={`step-pill ${
-                    currentStep === "marca" ? "active" : ""
-                  }`}
-                >
-                  1. Marca
-                </span>
-                <span
-                  className={`step-pill ${
-                    currentStep === "modelo" ? "active" : ""
-                  }`}
-                >
-                  2. Modelo
-                </span>
-                <span
-                  className={`step-pill ${currentStep === "ano" ? "active" : ""}`}
-                >
-                  3. Ano
-                </span>
-                <span
-                  className={`step-pill ${
-                    currentStep === "detalhes" ? "active" : ""
-                  }`}
-                >
-                  4. Detalhes
-                </span>
-              </div>
-            </div>
-
-            <div className="fields-grid">
-              {/* Marca */}
-              <div className="field">
-                <label className="field-label">Marca</label>
-                <input
-                  type="text"
-                  list="brand-options"
-                  value={brandSearch}
-                  onChange={handleBrandInput}
-                  placeholder="Ex: BMW, VW, Fiat..."
-                  className="field-input"
-                />
-                <datalist id="brand-options">
-                  {brands.map((b) => (
-                    <option key={b.codigo} value={b.nome} />
-                  ))}
-                </datalist>
-                <p className="field-hint">
-                  Digite a marca e escolha uma opção sugerida.
-                </p>
+            {/* Buscar veículo */}
+            <section className="card search-card">
+              <div className="card-header">
+                <div>
+                  <h2>Buscar veículo</h2>
+                  <p>Digite a marca e o modelo, depois selecione o ano.</p>
+                </div>
+                <div className="steps">
+                  <span
+                    className={`step-pill ${
+                      currentStep === "marca" ? "active" : ""
+                    }`}
+                  >
+                    1. Marca
+                  </span>
+                  <span
+                    className={`step-pill ${
+                      currentStep === "modelo" ? "active" : ""
+                    }`}
+                  >
+                    2. Modelo
+                  </span>
+                  <span
+                    className={`step-pill ${
+                      currentStep === "ano" ? "active" : ""
+                    }`}
+                  >
+                    3. Ano
+                  </span>
+                  <span
+                    className={`step-pill ${
+                      currentStep === "detalhes" ? "active" : ""
+                    }`}
+                  >
+                    4. Detalhes
+                  </span>
+                </div>
               </div>
 
-              {/* Modelo */}
-              <div className="field">
-                <label className="field-label">Modelo</label>
-                <input
-                  type="text"
-                  list="model-options"
-                  value={modelSearch}
-                  onChange={handleModelInput}
-                  placeholder={
-                    brandCode
-                      ? "Ex: 320i, Gol, Civic..."
-                      : "Selecione uma marca primeiro"
-                  }
-                  disabled={!brandCode}
-                  className="field-input"
-                />
-                <datalist id="model-options">
-                  {models.map((m) => (
-                    <option key={m.codigo} value={m.nome} />
-                  ))}
-                </datalist>
-                <p className="field-hint">
-                  Os modelos são filtrados pela marca escolhida.
-                </p>
+              <div className="fields-grid">
+                {/* Marca */}
+                <div className="field">
+                  <label className="field-label">Marca</label>
+                  <input
+                    type="text"
+                    list="brand-options"
+                    value={brandSearch}
+                    onChange={handleBrandInput}
+                    placeholder="Ex: BMW, VW, Fiat..."
+                    className="field-input"
+                  />
+                  <datalist id="brand-options">
+                    {brands.map((b) => (
+                      <option key={b.codigo} value={b.nome} />
+                    ))}
+                  </datalist>
+                  <p className="field-hint">
+                    Digite a marca e escolha uma opção sugerida.
+                  </p>
+                </div>
+
+                {/* Modelo */}
+                <div className="field">
+                  <label className="field-label">Modelo</label>
+                  <input
+                    type="text"
+                    list="model-options"
+                    value={modelSearch}
+                    onChange={handleModelInput}
+                    placeholder={
+                      brandCode
+                        ? "Ex: 320i, Gol, Civic..."
+                        : "Selecione uma marca primeiro"
+                    }
+                    disabled={!brandCode}
+                    className="field-input"
+                  />
+                  <datalist id="model-options">
+                    {models.map((m) => (
+                      <option key={m.codigo} value={m.nome} />
+                    ))}
+                  </datalist>
+                  <p className="field-hint">
+                    Os modelos são filtrados pela marca escolhida.
+                  </p>
+                </div>
+
+                {/* Ano */}
+                <div className="field">
+                  <label className="field-label">Ano</label>
+                  <select
+                    value={yearCode}
+                    onChange={(e) => setYearCode(e.target.value)}
+                    className="field-input"
+                    disabled={!brandCode || !modelCode}
+                  >
+                    <option value="">Selecione</option>
+                    {years.map((y) => (
+                      <option key={y.codigo} value={y.codigo}>
+                        {y.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="field-hint">
+                    Mostramos apenas os anos disponíveis na FIPE.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Detalhes do veículo (FIPE) */}
+            <section className="card details-card">
+              <div className="card-header">
+                <div>
+                  <h2>Detalhes do veículo</h2>
+                  <p>Veja o valor FIPE e informações principais.</p>
+                </div>
               </div>
 
-              {/* Ano */}
-              <div className="field">
-                <label className="field-label">Ano</label>
-                <select
-                  value={yearCode}
-                  onChange={(e) => setYearCode(e.target.value)}
-                  className="field-input"
-                  disabled={!brandCode || !modelCode}
-                >
-                  <option value="">Selecione</option>
-                  {years.map((y) => (
-                    <option key={y.codigo} value={y.codigo}>
-                      {y.nome}
-                    </option>
-                  ))}
-                </select>
-                <p className="field-hint">
-                  Mostramos apenas os anos disponíveis na FIPE.
-                </p>
-              </div>
-            </div>
-          </section>
+              {loadingDetails && (
+                <div className="details-placeholder">
+                  <div className="skeleton skeleton-title" />
+                  <div className="skeleton skeleton-line" />
+                  <div className="skeleton skeleton-line" />
+                  <div className="skeleton skeleton-line short" />
+                </div>
+              )}
 
-          {/* CARD DE DETALHES */}
-          <section className="card details-card">
-            <div className="card-header">
-              <div>
-                <h2>Detalhes do veículo</h2>
-                <p>Veja o valor FIPE e informações principais.</p>
-              </div>
-            </div>
+              {!loadingDetails && !details && (
+                <div className="details-placeholder">
+                  <p>
+                    Comece selecionando marca, modelo e ano para ver os detalhes
+                    aqui.
+                  </p>
+                </div>
+              )}
 
-            {loadingDetails && (
-              <div className="details-placeholder">
-                <div className="skeleton skeleton-title" />
-                <div className="skeleton skeleton-line" />
-                <div className="skeleton skeleton-line" />
-                <div className="skeleton skeleton-line short" />
-              </div>
-            )}
-
-            {!loadingDetails && !details && (
-              <div className="details-placeholder">
-                <p>
-                  Comece selecionando marca, modelo e ano para ver os detalhes
-                  aqui.
-                </p>
-              </div>
-            )}
-
-            {!loadingDetails && details && details.fipe && (
-              <div className="details-content">
-                <div className="details-main">
-                  <div className="details-header-row">
-                    <div>
-                      <h3>{details.fipe.Modelo}</h3>
-                      <p className="details-sub">
-                        {details.fipe.Marca} • {details.fipe.AnoModelo} •{" "}
-                        {details.fipe.Combustivel}
-                      </p>
+              {!loadingDetails && details && details.fipe && (
+                <div className="details-content">
+                  <div className="details-main">
+                    <div className="details-header-row">
+                      <div>
+                        <h3>{details.fipe.Modelo}</h3>
+                        <p className="details-sub">
+                          {details.fipe.Marca} • {details.fipe.AnoModelo} •{" "}
+                          {details.fipe.Combustivel}
+                        </p>
+                      </div>
+                      <div className="price-badge">
+                        <span className="price-label">Valor FIPE</span>
+                        <span className="price-value">
+                          {details.fipe.Valor}
+                        </span>
+                        <span className="price-ref">
+                          {details.fipe.MesReferencia}
+                        </span>
+                      </div>
                     </div>
-                    <div className="price-badge">
-                      <span className="price-label">Valor FIPE</span>
-                      <span className="price-value">{details.fipe.Valor}</span>
-                      <span className="price-ref">
-                        {details.fipe.MesReferencia}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="details-grid">
-                    <div className="details-item">
-                      <span className="details-item-label">Código FIPE</span>
-                      <span className="details-item-value">
-                        {details.fipe.CodigoFipe}
-                      </span>
-                    </div>
-                    <div className="details-item">
-                      <span className="details-item-label">Combustível</span>
-                      <span className="details-item-value">
-                        {details.fipe.Combustivel}
-                      </span>
-                    </div>
-                    <div className="details-item">
-                      <span className="details-item-label">Ano Modelo</span>
-                      <span className="details-item-value">
-                        {details.fipe.AnoModelo}
-                      </span>
-                    </div>
-                    <div className="details-item">
-                      <span className="details-item-label">Tipo veículo</span>
-                      <span className="details-item-value">
-                        {details.fipe.TipoVeiculo === 1
-                          ? "Automóvel"
-                          : details.fipe.TipoVeiculo}
-                      </span>
+                    <div className="details-grid">
+                      <div className="details-item">
+                        <span className="details-item-label">
+                          Código FIPE
+                        </span>
+                        <span className="details-item-value">
+                          {details.fipe.CodigoFipe}
+                        </span>
+                      </div>
+                      <div className="details-item">
+                        <span className="details-item-label">
+                          Combustível
+                        </span>
+                        <span className="details-item-value">
+                          {details.fipe.Combustivel}
+                        </span>
+                      </div>
+                      <div className="details-item">
+                        <span className="details-item-label">
+                          Ano Modelo
+                        </span>
+                        <span className="details-item-value">
+                          {details.fipe.AnoModelo}
+                        </span>
+                      </div>
+                      <div className="details-item">
+                        <span className="details-item-label">
+                          Tipo veículo
+                        </span>
+                        <span className="details-item-value">
+                          {details.fipe.TipoVeiculo === 1
+                            ? "Automóvel"
+                            : details.fipe.TipoVeiculo}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
+              )}
+            </section>
+          </div>
 
-                {/* ======== SPECS (API EXTERNA) ======== */}
+          {/* COLUNA DIREITA: ESPECIFICAÇÕES TÉCNICAS */}
+          <div className="main-right">
+            <section className="card details-card">
+              <div className="card-header">
+                <div>
+                  <h2>Especificações técnicas (API externa)</h2>
+                  <p>Dados complementares obtidos em APIs globais.</p>
+                </div>
+              </div>
+
+              {loadingDetails && (
+                <div className="details-placeholder">
+                  <div className="skeleton skeleton-title" />
+                  <div className="skeleton skeleton-line" />
+                  <div className="skeleton skeleton-line" />
+                  <div className="skeleton skeleton-line short" />
+                </div>
+              )}
+
+              {!loadingDetails && !details && (
+                <div className="details-placeholder">
+                  <p>
+                    Selecione um veículo na coluna à esquerda para ver as
+                    especificações aqui.
+                  </p>
+                </div>
+              )}
+
+              {!loadingDetails && details && (
                 <div className="details-extra">
-                  <h4>Especificações técnicas (API externa)</h4>
-
-                  {details.specs ? (
+                  {hasExtraSpecs && specs ? (
                     <div className="specs-grid">
-
                       <div className="details-item">
                         <span className="details-item-label">Marca (API)</span>
                         <span className="details-item-value">
-                          {details.specs.make?.toUpperCase()}
+                          {specs.make?.toUpperCase() || "-"}
                         </span>
                       </div>
 
                       <div className="details-item">
-                        <span className="details-item-label">Modelo (API)</span>
+                        <span className="details-item-label">
+                          Modelo (API)
+                        </span>
                         <span className="details-item-value">
-                          {details.specs.model}
+                          {specs.model || "-"}
                         </span>
                       </div>
 
                       <div className="details-item">
                         <span className="details-item-label">Ano</span>
                         <span className="details-item-value">
-                          {details.specs.year}
+                          {specs.year || "-"}
                         </span>
                       </div>
 
                       <div className="details-item">
-                        <span className="details-item-label">Combustível</span>
+                        <span className="details-item-label">
+                          Combustível
+                        </span>
                         <span className="details-item-value">
-                          {details.specs.fuel_type === "gas"
-                            ? "Gasolina"
-                            : details.specs.fuel_type === "diesel"
-                            ? "Diesel"
-                            : details.specs.fuel_type === "electricity"
-                            ? "Elétrico"
-                            : details.specs.fuel_type}
+                          {mapFuelType(specs.fuel_type)}
                         </span>
                       </div>
 
                       <div className="details-item">
                         <span className="details-item-label">Motor</span>
                         <span className="details-item-value">
-                          {details.specs.engine || "-"}
+                          {specs.engine || "-"}
                         </span>
                       </div>
 
                       <div className="details-item">
-                        <span className="details-item-label">Cilindrada</span>
+                        <span className="details-item-label">
+                          Cilindrada
+                        </span>
                         <span className="details-item-value">
-                          {details.specs.displacement
-                            ? `${details.specs.displacement} L`
+                          {specs.displacement
+                            ? `${specs.displacement} L`
                             : "-"}
                         </span>
                       </div>
@@ -415,44 +501,37 @@ function App() {
                       <div className="details-item">
                         <span className="details-item-label">Cilindros</span>
                         <span className="details-item-value">
-                          {details.specs.cylinders || "-"}
+                          {specs.cylinders || "-"}
                         </span>
                       </div>
 
                       <div className="details-item">
-                        <span className="details-item-label">Transmissão</span>
+                        <span className="details-item-label">
+                          Transmissão
+                        </span>
                         <span className="details-item-value">
-                          {details.specs.transmission === "a"
-                            ? "Automática"
-                            : details.specs.transmission === "m"
-                            ? "Manual"
-                            : details.specs.transmission}
+                          {mapTransmission(specs.transmission)}
                         </span>
                       </div>
 
                       <div className="details-item">
                         <span className="details-item-label">Tração</span>
                         <span className="details-item-value">
-                          {details.specs.drive === "awd"
-                            ? "Integral (AWD)"
-                            : details.specs.drive === "fwd"
-                            ? "Dianteira (FWD)"
-                            : details.specs.drive === "rwd"
-                            ? "Traseira (RWD)"
-                            : details.specs.drive}
+                          {mapDrive(specs.drive)}
                         </span>
                       </div>
 
                       <div className="details-item">
-                        <span className="details-item-label">Carroceria</span>
+                        <span className="details-item-label">
+                          Carroceria
+                        </span>
                         <span className="details-item-value">
-                          {details.specs.body_style || "-"}
+                          {specs.body_style || "-"}
                         </span>
                       </div>
 
-                      {/* Consumo se não for bloqueado por plano premium */}
-                      {details.specs.city_mpg &&
-                        !String(details.specs.city_mpg)
+                      {specs.city_mpg &&
+                        !String(specs.city_mpg)
                           .toLowerCase()
                           .includes("premium") && (
                           <div className="details-item">
@@ -460,13 +539,13 @@ function App() {
                               Consumo cidade
                             </span>
                             <span className="details-item-value">
-                              {details.specs.city_mpg} mpg
+                              {specs.city_mpg} mpg
                             </span>
                           </div>
                         )}
 
-                      {details.specs.highway_mpg &&
-                        !String(details.specs.highway_mpg)
+                      {specs.highway_mpg &&
+                        !String(specs.highway_mpg)
                           .toLowerCase()
                           .includes("premium") && (
                           <div className="details-item">
@@ -474,22 +553,18 @@ function App() {
                               Consumo estrada
                             </span>
                             <span className="details-item-value">
-                              {details.specs.highway_mpg} mpg
+                              {specs.highway_mpg} mpg
                             </span>
                           </div>
                         )}
                     </div>
                   ) : (
-                    <p className="details-note">
-                      Nenhuma especificação extra encontrada para este modelo.
-                      <br />
-                      Você ainda pode usar as informações da FIPE acima.
-                    </p>
+                    <p className="details-note">{specsMessage}</p>
                   )}
                 </div>
-              </div>
-            )}
-          </section>
+              )}
+            </section>
+          </div>
         </main>
 
         <footer className="app-footer">
